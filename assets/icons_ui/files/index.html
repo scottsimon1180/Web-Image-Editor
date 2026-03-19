@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PixelForge — Image Editor</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ═══════════════════ MENU BAR ═══════════════════ -->
+<div class="menubar">
+  <div class="menu-item" data-menu="file">File
+    <div class="menu-dropdown" id="menu-file">
+      <button class="menu-action" onclick="newImage()">New <span class="shortcut">Ctrl+N</span></button>
+      <button class="menu-action" onclick="openImage()">Open <span class="shortcut">Ctrl+O</span></button>
+      <div class="menu-sep"></div>
+      <button class="menu-action" onclick="saveImage('png')">Export PNG <span class="shortcut">Ctrl+S</span></button>
+      <button class="menu-action" onclick="saveImage('jpg')">Export JPG <span class="shortcut">Ctrl+Shift+S</span></button>
+      <button class="menu-action" onclick="saveImage('webp')">Export WebP</button>
+    </div>
+  </div>
+  <div class="menu-item" data-menu="edit">Edit
+    <div class="menu-dropdown" id="menu-edit">
+      <button class="menu-action" onclick="doUndo()">Undo <span class="shortcut">Ctrl+Z</span></button>
+      <button class="menu-action" onclick="doRedo()">Redo <span class="shortcut">Ctrl+Y</span></button>
+      <div class="menu-sep"></div>
+      <button class="menu-action" onclick="selectAll()">Select All <span class="shortcut">Ctrl+A</span></button>
+      <button class="menu-action" onclick="clearSelection()">Deselect <span class="shortcut">Ctrl+D</span></button>
+      <div class="menu-sep"></div>
+      <button class="menu-action" onclick="deleteSelection()">Delete Selection <span class="shortcut">Del</span></button>
+      <button class="menu-action" onclick="cropToSelection()">Crop to Selection</button>
+    </div>
+  </div>
+  <div class="menu-item" data-menu="filter">Filter
+    <div class="menu-dropdown" id="menu-filter">
+      <button class="menu-action" onclick="openFilter('brightness')">Brightness / Contrast</button>
+      <button class="menu-action" onclick="openFilter('hsl')">Hue / Saturation</button>
+      <div class="menu-sep"></div>
+      <button class="menu-action" onclick="openFilter('blur')">Gaussian Blur</button>
+      <button class="menu-action" onclick="openFilter('sharpen')">Sharpen</button>
+      <div class="menu-sep"></div>
+      <button class="menu-action" onclick="openFilter('invert')">Invert Colors</button>
+      <button class="menu-action" onclick="openFilter('grayscale')">Grayscale</button>
+      <button class="menu-action" onclick="openFilter('sepia')">Sepia</button>
+    </div>
+  </div>
+  <div class="menu-item" data-menu="view">View
+    <div class="menu-dropdown" id="menu-view">
+      <button class="menu-action" onclick="zoomIn()">Zoom In <span class="shortcut">Ctrl+=</span></button>
+      <button class="menu-action" onclick="zoomOut()">Zoom Out <span class="shortcut">Ctrl+-</span></button>
+      <button class="menu-action" onclick="zoomFit()">Fit to Window <span class="shortcut">Ctrl+0</span></button>
+      <button class="menu-action" onclick="zoom100()">100% <span class="shortcut">Ctrl+1</span></button>
+    </div>
+  </div>
+  <span class="app-title">PixelForge</span>
+</div>
+
+<!-- ═══════════════════ OPTIONS BAR ═══════════════════ -->
+<div class="options-bar" id="optionsBar">
+  <div class="opt-group" id="opt-size">
+    <span class="opt-label">Size</span>
+    <input type="range" class="opt-range" id="brushSize" min="1" max="200" value="8">
+    <input type="number" class="opt-input" id="brushSizeNum" value="8" min="1" max="500">
+  </div>
+  <div class="opt-group" id="opt-opacity">
+    <span class="opt-label">Opacity</span>
+    <input type="range" class="opt-range" id="toolOpacity" min="1" max="100" value="100">
+    <input type="number" class="opt-input" id="toolOpacityNum" value="100" min="1" max="100" style="width:44px">
+    <span class="opt-label" style="margin-left:-4px">%</span>
+  </div>
+  <div class="opt-group" id="opt-hardness">
+    <span class="opt-label">Hardness</span>
+    <input type="range" class="opt-range" id="brushHardness" min="0" max="100" value="100">
+  </div>
+  <div class="opt-group hidden" id="opt-fill-mode">
+    <span class="opt-label">Fill</span>
+    <select class="opt-select" id="shapeFillMode">
+      <option value="stroke">Stroke</option>
+      <option value="fill">Fill</option>
+      <option value="both">Both</option>
+    </select>
+  </div>
+  <div class="opt-group hidden" id="opt-stroke-width">
+    <span class="opt-label">Stroke</span>
+    <input type="number" class="opt-input" id="shapeStrokeWidth" value="2" min="1" max="50" style="width:44px">
+  </div>
+  <div class="opt-group hidden" id="opt-font">
+    <span class="opt-label">Font</span>
+    <select class="opt-select" id="textFont">
+      <option value="Arial">Arial</option>
+      <option value="Helvetica">Helvetica</option>
+      <option value="Georgia">Georgia</option>
+      <option value="Times New Roman">Times New Roman</option>
+      <option value="Courier New">Courier New</option>
+      <option value="Verdana">Verdana</option>
+      <option value="Impact">Impact</option>
+    </select>
+    <input type="number" class="opt-input" id="textSize" value="24" min="6" max="400" style="width:50px">
+    <span class="opt-label" style="margin-left:-4px">px</span>
+  </div>
+  <div class="opt-group hidden" id="opt-gradient-type">
+    <span class="opt-label">Type</span>
+    <select class="opt-select" id="gradientType">
+      <option value="linear">Linear</option>
+      <option value="radial">Radial</option>
+    </select>
+  </div>
+  <div class="opt-group hidden" id="opt-tolerance">
+    <span class="opt-label">Tolerance</span>
+    <input type="range" class="opt-range" id="fillTolerance" min="0" max="255" value="32">
+    <input type="number" class="opt-input" id="fillToleranceNum" value="32" min="0" max="255" style="width:44px">
+  </div>
+  <div class="opt-group hidden" id="opt-select-type">
+    <span class="opt-label">Shape</span>
+    <select class="opt-select" id="selectShape">
+      <option value="rect">Rectangle</option>
+      <option value="ellipse">Ellipse</option>
+    </select>
+  </div>
+</div>
+
+<!-- ═══════════════════ APP BODY ═══════════════════ -->
+<div class="app-body">
+
+  <!-- ═══ TOOLBAR ═══ -->
+  <div class="toolbar" id="toolbarEl">
+    <button class="tool-btn active" data-tool="move" title="Move (V)">
+      <span class="tool-icon" style="-webkit-mask-image:url(assets/icons_ui/move.svg);mask-image:url(assets/icons_ui/move.svg)"></span>
+    </button>
+    <button class="tool-btn" data-tool="select" title="Select (M)">
+      <span class="tool-icon" style="-webkit-mask-image:url(assets/icons_ui/rectangle_select.svg);mask-image:url(assets/icons_ui/rectangle_select.svg)"></span>
+    </button>
+    <button class="tool-btn" data-tool="lasso" title="Lasso (L)">
+      <span class="tool-icon" style="-webkit-mask-image:url(assets/icons_ui/lasso.svg);mask-image:url(assets/icons_ui/lasso.svg)"></span>
+    </button>
+
+    <div class="tool-sep"></div>
+
+    <button class="tool-btn" data-tool="brush" title="Brush (B)">
+      <span class="tool-icon" style="-webkit-mask-image:url(assets/icons_ui/brush.svg);mask-image:url(assets/icons_ui/brush.svg)"></span>
+    </button>
+    <button class="tool-btn" data-tool="pencil" title="Pencil (P)">
+      <span class="tool-icon" style="-webkit-mask-image:url(assets/icons_ui/pencil.svg);mask-image:url(assets/icons_ui/pencil.svg)"></span>
+    </button>
+    <button class="tool-btn" data-tool="eraser" title="Eraser (E)">
+      <span class="tool-icon" style="-webkit-mask-image:url(assets/icons_ui/eraser.svg);mask-image:url(assets/icons_ui/eraser.svg)"></span>
+    </button>
+
+    <div class="tool-sep"></div>
+
+    <button class="tool-btn" data-tool="fill" title="Fill (G)">
+      <span class="tool-icon" style="-webkit-mask-image:url(assets/icons_ui/bucket.svg);mask-image:url(assets/icons_ui/bucket.svg)"></span>
+    </button>
+    <button class="tool-btn" data-tool="gradient" title="Gradient (D)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="12" x2="21" y2="12" opacity="0.3"/><line x1="3" y1="8" x2="21" y2="8" opacity="0.15"/><line x1="3" y1="16" x2="21" y2="16" opacity="0.5"/><line x1="3" y1="20" x2="21" y2="20" opacity="0.7"/></svg>
+    </button>
+    <button class="tool-btn" data-tool="eyedropper" title="Eyedropper (I)">
+      <span class="tool-icon" style="-webkit-mask-image:url(assets/icons_ui/eyedroper.svg);mask-image:url(assets/icons_ui/eyedroper.svg)"></span>
+    </button>
+
+    <div class="tool-sep"></div>
+
+    <button class="tool-btn" data-tool="text" title="Text (T)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9.5" y1="20" x2="14.5" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg>
+    </button>
+    <button class="tool-btn" data-tool="rect" title="Rectangle (U)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>
+    </button>
+    <button class="tool-btn" data-tool="ellipse" title="Ellipse (O)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="12" rx="10" ry="8"/></svg>
+    </button>
+    <button class="tool-btn" data-tool="line" title="Line (N)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="5" y1="19" x2="19" y2="5"/></svg>
+    </button>
+
+    <div class="tool-sep"></div>
+
+    <button class="tool-btn" data-tool="zoom" title="Zoom (Z)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+    </button>
+
+    <!-- Color wells -->
+    <div class="color-wells">
+      <div class="color-swap" onclick="swapColors()" title="Swap colors (X)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M7 16V4m0 0L3 8m4-4 4 4M17 8v12m0 0 4-4m-4 4-4-4"/></svg>
+      </div>
+      <div class="color-well fg" id="fgWell" title="Foreground color"></div>
+      <div class="color-well bg" id="bgWell" title="Background color"></div>
+    </div>
+  </div>
+
+  <!-- ═══ WORKSPACE ═══ -->
+  <div class="workspace" id="workspace">
+    <div class="canvas-wrapper" id="canvasWrapper">
+      <canvas id="compositeCanvas"></canvas>
+      <canvas id="overlayCanvas"></canvas>
+    </div>
+  </div>
+
+  <!-- ═══ PANELS ═══ -->
+  <div class="panels">
+    <!-- Color Panel -->
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-title">Color</span>
+      </div>
+      <div class="panel-body">
+        <div class="color-preview-row">
+          <div class="color-preview-swatch" id="colorSwatchPreview" style="background:#ffffff">
+            <input type="color" id="mainColorPicker" value="#ffffff">
+          </div>
+          <div class="color-fields">
+            <div class="color-field-row">
+              <span class="color-field-label">HEX</span>
+              <input class="color-field-input" id="hexInput" value="FFFFFF" maxlength="6">
+            </div>
+            <div class="color-field-row">
+              <span class="color-field-label">R</span>
+              <input class="color-field-input" id="rInput" type="number" value="255" min="0" max="255">
+              <span class="color-field-label" style="width:10px">G</span>
+              <input class="color-field-input" id="gInput" type="number" value="255" min="0" max="255">
+              <span class="color-field-label" style="width:10px">B</span>
+              <input class="color-field-input" id="bInput" type="number" value="255" min="0" max="255">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Layers Panel -->
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-title">Layers</span>
+        <div class="panel-actions">
+          <button class="panel-btn" onclick="addLayer()" title="Add Layer">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          </button>
+          <button class="panel-btn" onclick="deleteLayer()" title="Delete Layer">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          </button>
+          <button class="panel-btn" onclick="moveLayerUp()" title="Move Up">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 19V5m0 0-7 7m7-7 7 7"/></svg>
+          </button>
+          <button class="panel-btn" onclick="moveLayerDown()" title="Move Down">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14m0 0 7-7m-7 7-7-7"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="panel-body">
+        <div class="opt-group" style="margin-bottom:8px">
+          <span class="opt-label">Opacity</span>
+          <input type="range" class="opt-range" id="layerOpacity" min="0" max="100" value="100" style="width:100px">
+          <span id="layerOpacityVal" style="font-size:11px;color:var(--text);font-weight:700;width:32px;text-align:right">100%</span>
+        </div>
+        <div class="layers-list" id="layersList"></div>
+      </div>
+    </div>
+
+    <!-- History Panel -->
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-title">History</span>
+      </div>
+      <div class="panel-body">
+        <div class="history-list" id="historyList"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ STATUS BAR ═══════════════════ -->
+<div class="statusbar">
+  <span class="status-item" id="statusSize">1920 × 1080</span>
+  <span class="status-sep"></span>
+  <span class="status-item" id="statusPos">X: 0  Y: 0</span>
+  <span class="status-sep"></span>
+  <span class="status-item" id="statusZoom">100%</span>
+  <span class="status-sep"></span>
+  <span class="status-item" id="statusTool">Move</span>
+</div>
+
+<!-- ═══════════════════ NEW IMAGE MODAL ═══════════════════ -->
+<div class="modal-overlay" id="newImageModal">
+  <div class="modal">
+    <div class="modal-title">New Image</div>
+    <div class="modal-row">
+      <span class="modal-label">Width</span>
+      <input type="number" class="modal-input" id="newWidth" value="1920" min="1" max="8192">
+    </div>
+    <div class="modal-row">
+      <span class="modal-label">Height</span>
+      <input type="number" class="modal-input" id="newHeight" value="1080" min="1" max="8192">
+    </div>
+    <div class="modal-row">
+      <span class="modal-label">Background</span>
+      <select class="opt-select" id="newBg" style="flex:1;height:32px">
+        <option value="white">White</option>
+        <option value="black">Black</option>
+        <option value="transparent">Transparent</option>
+      </select>
+    </div>
+    <div class="modal-buttons">
+      <button class="modal-btn" onclick="closeModal('newImageModal')">Cancel</button>
+      <button class="modal-btn primary" onclick="createNewImage()">Create</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ FILTER MODAL ═══════════════════ -->
+<div class="modal-overlay" id="filterModal">
+  <div class="modal" style="min-width:380px">
+    <div class="modal-title" id="filterTitle">Filter</div>
+    <div class="filter-preview"><canvas id="filterPreviewCanvas"></canvas></div>
+    <div id="filterControls"></div>
+    <div class="modal-buttons">
+      <button class="modal-btn" onclick="closeModal('filterModal')">Cancel</button>
+      <button class="modal-btn primary" onclick="applyFilter()">Apply</button>
+    </div>
+  </div>
+</div>
+
+<!-- Hidden file input -->
+<input type="file" id="fileInput" accept="image/*">
+
+
+<script src="script.js"></script>
+</body>
+</html>
