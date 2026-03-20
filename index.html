@@ -112,11 +112,31 @@
     <input type="number" class="opt-input" id="fillToleranceNum" value="32" min="0" max="255" style="width:44px">
   </div>
   <div class="opt-group hidden" id="opt-select-type">
-    <span class="opt-label">Shape</span>
-    <select class="opt-select" id="selectShape">
-      <option value="rect">Rectangle</option>
-      <option value="ellipse">Ellipse</option>
-    </select>
+    <button class="opt-icon-btn active" id="optSelectRect" onclick="setSelectShape('rect')" title="Rectangle Select">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="-1 -1 20.37 20.36"><path d="M0 5.31h1.38V3.1c0-1.12.6-1.7 1.69-1.7h2.2V0H3.04C1.02 0 0 1.03 0 3.03zm6.51-3.9h5.34V0H6.51zm10.48 3.9h1.38V3.03c0-1.99-1.03-3.01-3.05-3.01h-2.22v1.38h2.2c1.07 0 1.69.58 1.69 1.7zM16.98 11.84h1.38V6.56h-1.38zm-3.88 6.54h2.22c2.02 0 3.05-1.02 3.05-3.01v-2.28h-1.38v2.21c0 1.12-.62 1.7-1.69 1.7h-2.2zm-6.6 0h5.35V17H6.51zM3.04 18.38h2.22V17H3.07c-1.09 0-1.7-.58-1.7-1.7v-2.21H0v2.28c0 2 1.02 3.01 3.04 3.01zM0 11.84h1.38V6.56H0z" fill="currentColor"/></svg>
+    </button>
+    <button class="opt-icon-btn" id="optSelectEllipse" onclick="setSelectShape('ellipse')" title="Ellipse Select">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="-1 -1 22.35 22.35"><path d="M1.46094 10.1797C1.46094 9.21875 1.61719 8.28906 1.90625 7.4375L0.554688 6.875C0.203125 7.91406 0 9.02344 0 10.1797C0 11.3281 0.203125 12.4453 0.5625 13.4844L1.90625 12.9219C1.625 12.0703 1.46094 11.1406 1.46094 10.1797ZM6.25781 2.375L5.70312 1.0625C3.6875 2.05469 2.03906 3.70312 1.04688 5.71875L2.375 6.28125C3.21094 4.59375 4.57812 3.22656 6.25781 2.375ZM10.1641 1.46094C11.125 1.46094 12.0547 1.61719 12.9219 1.90625L13.4688 0.570312C12.4297 0.203125 11.3203 0 10.1641 0C9.01562 0 7.89062 0.203125 6.85156 0.570312L7.41406 1.90625C8.28125 1.60938 9.20312 1.46094 10.1641 1.46094ZM17.9688 6.27344L19.2969 5.71875C18.2969 3.69531 16.6406 2.04688 14.625 1.04688L14.0703 2.375C15.7578 3.21875 17.125 4.57812 17.9688 6.27344ZM18.8906 10.1797C18.8906 11.1406 18.7344 12.0703 18.4531 12.9297L19.7812 13.4922C20.1484 12.4531 20.3516 11.3281 20.3516 10.1797C20.3516 9.02344 20.1484 7.90625 19.7812 6.86719L18.4531 7.42969C18.7422 8.28906 18.8906 9.21875 18.8906 10.1797ZM14.0703 17.9766L14.625 19.3047C16.6484 18.3047 18.3047 16.6562 19.2891 14.6406L17.9766 14.0859C17.1328 15.7734 15.7656 17.1406 14.0703 17.9766ZM10.1719 18.8984C9.20312 18.8984 8.28125 18.7422 7.41406 18.4453L6.85938 19.7891C7.89844 20.1484 9.02344 20.3516 10.1719 20.3516C11.3281 20.3516 12.4375 20.1562 13.4766 19.7969L12.9141 18.4609C12.0469 18.7422 11.1328 18.8984 10.1719 18.8984ZM2.38281 14.0859L1.04688 14.6406C2.04688 16.6562 3.69531 18.3047 5.71094 19.2969L6.25781 17.9688C4.57812 17.1328 3.21094 15.7656 2.38281 14.0859Z" fill="currentColor"/></svg>
+    </button>
+  </div>
+  <div class="opt-group hidden" id="opt-lasso-type">
+    <button class="opt-icon-btn active" id="optLassoFree" onclick="setLassoMode('free')" title="Freeform Lasso">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="-0.63 0.93 25.22 22.66"><path fill="currentColor" d="M9.53,16.16c-0.01,0-0.02,0-0.03,0c-0.85,0-1.69-0.06-2.49-0.18L7.31,14c0.7,0.11,1.49,0.15,2.22,0.16 c0.5,0,1.01-0.02,1.53-0.07l0.18,1.99C10.66,16.13,10.09,16.16,9.53,16.16z M13.32,15.78l-0.38-1.96c1.28-0.25,2.49-0.62,3.61-1.11 l0.79,1.84C16.09,15.09,14.74,15.5,13.32,15.78z M4.9,15.49c-1.71-0.56-3.02-1.46-3.78-2.58l1.66-1.12c0.51,0.75,1.46,1.38,2.74,1.8 L4.9,15.49z M19.24,13.58l-1.03-1.72c1.17-0.7,2.09-1.51,2.68-2.34l1.63,1.15C21.78,11.73,20.65,12.74,19.24,13.58z M0.45,11.28 c-0.05-0.27-0.08-0.54-0.08-0.82c0-1.24,0.53-2.51,1.55-3.68l1.51,1.31c-0.69,0.8-1.06,1.62-1.06,2.37c0,0.15,0.01,0.29,0.04,0.44 L0.45,11.28z M23.51,8.49l-1.96-0.39c0.03-0.16,0.05-0.32,0.05-0.48c0-0.15-0.01-0.29-0.04-0.44c-0.12-0.6-0.48-1.15-1.07-1.62 L21.74,4c0.95,0.77,1.57,1.74,1.77,2.8c0.05,0.27,0.08,0.54,0.08,0.82C23.59,7.9,23.56,8.2,23.51,8.49z M4.74,6.88l-1.2-1.6 C4.6,4.49,5.87,3.8,7.29,3.25l0.72,1.87C6.76,5.6,5.66,6.2,4.74,6.88z M19.01,4.7c-1-0.41-2.24-0.67-3.58-0.76l0.12-2 c1.58,0.1,2.99,0.4,4.21,0.9L19.01,4.7z M9.81,4.54L9.29,2.6c0.45-0.12,0.91-0.22,1.38-0.32c0.93-0.18,1.86-0.3,2.77-0.35l0.11,2 c-0.82,0.04-1.66,0.15-2.5,0.31C10.63,4.33,10.21,4.43,9.81,4.54z"/><path fill="currentColor" d="M6,17.93c-0.56,0-1.11-0.17-1.59-0.49c-0.63-0.43-1.06-1.07-1.2-1.82c-0.3-1.54,0.71-3.04,2.25-3.34 c1.54-0.3,3.04,0.71,3.34,2.25c0.15,0.75-0.01,1.51-0.43,2.14c-0.43,0.63-1.07,1.06-1.82,1.2C6.37,17.91,6.19,17.93,6,17.93z M6.01,14.23c-0.05,0-0.11,0-0.16,0.02c-0.46,0.09-0.76,0.54-0.67,1c0.04,0.22,0.17,0.42,0.36,0.54c0.19,0.13,0.41,0.17,0.64,0.13 c0.22-0.04,0.42-0.17,0.54-0.36c0.13-0.19,0.17-0.41,0.13-0.64C6.77,14.51,6.41,14.23,6.01,14.23z"/><path fill="currentColor" d="M6.02,22.59l-0.38-1.96c0.6-0.12,0.99-0.36,1.2-0.75c0.49-0.9,0.06-2.44-0.15-2.96l1.85-0.75c0.11,0.28,1.08,2.77,0.06,4.66 C8.25,21.47,7.52,22.3,6.02,22.59z"/></svg>
+    </button>
+    <button class="opt-icon-btn" id="optLassoPoly" onclick="setLassoMode('poly')" title="Polygonal Lasso">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0.63 -0.65 24.39 23.31"><path d="M6.67,11.3L6.1,9.76l-1.69,0.62l0.54,1.47c-0.86,0.63-1.33,1.72-1.12,2.83c0.14,0.75,0.57,1.39,1.2,1.82 C5.52,16.83,6.07,17,6.63,17c0.19,0,0.37-0.02,0.55-0.06c0.13-0.03,0.26-0.07,0.39-0.11c0.15,0.67,0.22,1.53-0.1,2.12 c-0.21,0.39-0.6,0.63-1.2,0.75l0.38,1.96c1.5-0.29,2.23-1.12,2.58-1.76c0.95-1.76,0.18-4.03-0.02-4.55 c0.06-0.12,0.1-0.25,0.14-0.38l2.36,0.02l0.02-1.8L9.3,13.17C8.89,12.06,7.84,11.31,6.67,11.3z M6.81,14.99 c-0.23,0.04-0.45,0-0.64-0.13c-0.19-0.12-0.32-0.32-0.36-0.54c-0.09-0.46,0.21-0.91,0.67-1c0.05-0.02,0.11-0.02,0.16-0.02 c0.4,0,0.76,0.28,0.84,0.69c0.04,0.23,0,0.45-0.13,0.64C7.23,14.82,7.03,14.95,6.81,14.99z" fill="currentColor"/><polygon points="14.8,4.23 12.77,5.73 11.21,5.32 10.75,7.07 13.15,7.69 15.87,5.68" fill="currentColor"/><polygon points="19.24,3.2 20.83,2.67 20.07,0.35 16.01,3.34 17.08,4.79" fill="currentColor"/><rect x="20.34" y="4.25" transform="matrix(0.9494 -0.3141 0.3141 0.9494 -1.0466 7.0124)" width="1.8" height="5" fill="currentColor"/><polygon points="5.59,8.36 4.51,5.44 9.3,6.69 9.76,4.95 4.92,3.69 4.48,5.36 3.92,3.82 3.47,3.31 1.63,2.83 3.9,8.98" fill="currentColor"/><polygon points="17.43,13.25 13.23,13.21 13.21,15.01 17.81,15.05 18.53,14.73 17.8,13.08" fill="currentColor"/><polygon points="23.35,10.27 21.64,10.83 21.8,11.31 19.17,12.47 19.9,14.12 24.02,12.29" fill="currentColor"/></svg>
+    </button>
+  </div>
+  <div class="opt-group hidden" id="opt-sel-mode">
+    <button class="opt-mode-btn active" id="optSelNew" onclick="setSelectionMode('new')" title="New Selection">New</button>
+    <button class="opt-mode-btn" id="optSelAdd" onclick="setSelectionMode('add')" title="Add to Selection">Add</button>
+    <button class="opt-mode-btn" id="optSelSub" onclick="setSelectionMode('subtract')" title="Subtract from Selection">Sub</button>
+  </div>
+  <div class="opt-group hidden" id="opt-transform-sel">
+    <label class="opt-checkbox-label">
+      <input type="checkbox" id="optTransformSel" onchange="toggleTransformSelection(this.checked)">
+      <span>Transform</span>
+    </label>
   </div>
 </div>
 
@@ -126,37 +146,40 @@
   <!-- ═══ TOOLBAR ═══ -->
   <div class="toolbar" id="toolbarEl">
     <button class="tool-btn active" data-tool="move" title="Move (V)">
-      <span class="tool-icon" style="-webkit-mask-image:url(assets/icons_ui/move.svg);mask-image:url(assets/icons_ui/move.svg)"></span>
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="287 287.05 26 25.89"><path d="M310.52 300.61l-9.66.04c-.17 0-.23.07-.23.24l-.03 9.59c0 1.67-2.01 2.03-2.75.45l-9.63-20.64c-.76-1.66.54-2.74 2.11-2l20.75 9.65c1.34.66 1.04 2.66-.66 2.67z" fill="currentColor"/></svg>
     </button>
-    <button class="tool-btn" data-tool="select" title="Select (M)">
-      <span class="tool-icon" style="-webkit-mask-image:url(assets/icons_ui/rectangle_select.svg);mask-image:url(assets/icons_ui/rectangle_select.svg)"></span>
+    <button class="tool-btn" data-tool="pan" title="Pan / Hand (H)">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="-1 -1 24.8 24.9"><path d="M8.44 5.01h5.91c.8 0 1.25-.83.67-1.45L12.09.32c-.39-.43-.99-.42-1.38.01L7.79 3.55c-.59.63-.14 1.46.65 1.46zM17.8 8.5v5.91c0 .8.83 1.25 1.45.67l3.22-2.92c.43-.4.44-1 .01-1.39l-3.23-2.93c-.62-.58-1.45-.13-1.45.66zM14.36 17.9H8.44c-.8 0-1.24.83-.66 1.45l2.93 3.23c.4.44 1 .42 1.38-.01l2.92-3.23c.58-.62.14-1.44-.65-1.44zM5 14.41V8.5c0-.8-.83-1.24-1.45-.66L.33 10.76c-.42.39-.45.98-.01 1.39l3.23 2.93c.62.58 1.45.13 1.45-.67zM11.4 20.13c.42 0 .77-.34.77-.76V3.54c0-.41-.35-.76-.77-.76-.41 0-.76.35-.76.76v15.83c0 .42.35.76.76.76zM2.74 11.45c0 .42.34.77.77.77h15.82c.41 0 .77-.35.77-.77 0-.42-.36-.76-.77-.76H3.51c-.43 0-.77.34-.77.76z" fill="currentColor"/></svg>
     </button>
-    <button class="tool-btn" data-tool="lasso" title="Lasso (L)">
-      <span class="tool-icon" style="-webkit-mask-image:url(file:///C:/Custom%20Scripts/HTML/7%20Web%20Image%20Editor/assets/icons_ui/lasso.svg);mask-image:url(file:///C:/Custom%20Scripts/HTML/7%20Web%20Image%20Editor/assets/icons_ui/lasso.svg)"></span>
+    <button class="tool-btn" data-tool="select" id="selectToolBtn" title="Select (M)">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="-1 -1 20.37 20.36"><path d="M0 5.31h1.38V3.1c0-1.12.6-1.7 1.69-1.7h2.2V0H3.04C1.02 0 0 1.03 0 3.03zm6.51-3.9h5.34V0H6.51zm10.48 3.9h1.38V3.03c0-1.99-1.03-3.01-3.05-3.01h-2.22v1.38h2.2c1.07 0 1.69.58 1.69 1.7zM16.98 11.84h1.38V6.56h-1.38zm-3.88 6.54h2.22c2.02 0 3.05-1.02 3.05-3.01v-2.28h-1.38v2.21c0 1.12-.62 1.7-1.69 1.7h-2.2zm-6.6 0h5.35V17H6.51zM3.04 18.38h2.22V17H3.07c-1.09 0-1.7-.58-1.7-1.7v-2.21H0v2.28c0 2 1.02 3.01 3.04 3.01zM0 11.84h1.38V6.56H0z" fill="currentColor"/></svg>
+    </button>
+    <button class="tool-btn" data-tool="lasso" id="lassoToolBtn" title="Lasso (L)">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="-0.63 0.93 25.22 22.66"><path d="M9.53 16.16c-.01 0-.02 0-.03 0-.85 0-1.69-.06-2.49-.18L7.31 14c.7.11 1.49.15 2.22.16.5 0 1.01-.02 1.53-.07l.18 1.99c-.58.05-1.15.08-1.71.08zm3.79-.38l-.38-1.96c1.28-.25 2.49-.62 3.61-1.11l.79 1.84c-1.25.54-2.6.95-4.02 1.23zM4.9 15.49c-1.71-.56-3.02-1.46-3.78-2.58l1.66-1.12c.51.75 1.46 1.38 2.74 1.8l-.62 1.9zm14.34-1.91l-1.03-1.72c1.17-.7 2.09-1.51 2.68-2.34l1.63 1.15c-.74 1.06-1.87 2.07-3.28 2.91zM.45 11.28c-.05-.27-.08-.54-.08-.82 0-1.24.53-2.51 1.55-3.68l1.51 1.31c-.69.8-1.06 1.62-1.06 2.37 0 .15.01.29.04.44L.45 11.28zm23.06-2.79l-1.96-.39c.03-.16.05-.32.05-.48 0-.15-.01-.29-.04-.44-.12-.6-.48-1.15-1.07-1.62L21.74 4c.95.77 1.57 1.74 1.77 2.8.05.27.08.54.08.82 0 .28-.03.58-.08.87zM4.74 6.88l-1.2-1.6C4.6 4.49 5.87 3.8 7.29 3.25l.72 1.87C6.76 5.6 5.66 6.2 4.74 6.88zm14.27-2.18c-1-.41-2.24-.67-3.58-.76l.12-2c1.58.1 2.99.4 4.21.9l-.75 1.86zM9.81 4.54L9.29 2.6c.45-.12.91-.22 1.38-.32.93-.18 1.86-.3 2.77-.35l.11 2c-.82.04-1.66.15-2.5.31-.42.09-.84.19-1.24.3z" fill="currentColor"/><path d="M6 17.93c-.56 0-1.11-.17-1.59-.49-.63-.43-1.06-1.07-1.2-1.82-.3-1.54.71-3.04 2.25-3.34 1.54-.3 3.04.71 3.34 2.25.15.75-.01 1.51-.43 2.14-.43.63-1.07 1.06-1.82 1.2-.18.03-.36.06-.55.06zm.01-3.7c-.05 0-.11 0-.16.02-.46.09-.76.54-.67 1 .04.22.17.42.36.54.19.13.41.17.64.13.22-.04.42-.17.54-.36.13-.19.17-.41.13-.64-.08-.41-.44-.69-.84-.69z" fill="currentColor"/><path d="M6.02 22.59l-.38-1.96c.6-.12.99-.36 1.2-.75.49-.9.06-2.44-.15-2.96l1.85-.75c.11.28 1.08 2.77.06 4.66-.35.64-1.08 1.47-2.58 1.76z" fill="currentColor"/></svg>
     </button>
 
     <div class="tool-sep"></div>
 
     <button class="tool-btn" data-tool="brush" title="Brush (B)">
-      <span class="tool-icon" style="-webkit-mask-image:url(https://scottsimon1180.github.io/Web-Image-Editor/brush.svg);mask-image:url(https://scottsimon1180.github.io/Web-Image-Editor/brush.svg)"></span>
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="-1 -0.81 23.64 22.05"><path d="M.21 17.82c1.66 2.38 5.33 3.19 7.66 1.56 2.02-1.4 2.47-3.58 1.13-5.5-1.2-1.73-3.37-2.2-4.8-1.19-1.66 1.17-.98 2.78-2 3.5-.84.59-1.43.22-1.91.55-.32.2-.44.58-.08 1.08zm9.13-5.32c.73.73 1.26 1.68 1.39 2.5.77-.15 1.41-.53 2.09-1.22.09-.09.19-.18.27-.28-.43-2.41-2.4-4.33-4.74-4.75-.1.09-.2.18-.29.27-.69.69-1.07 1.33-1.21 2.1.8.12 1.76.63 2.49 1.38zm9.61-11.98c-.54.39-6.39 4.44-9.78 7.47 2.24.66 4.01 2.39 4.68 4.69 3.04-3.39 7.08-9.24 7.47-9.79 1.12-1.59-.87-3.49-2.37-2.37z" fill="currentColor"/></svg>
     </button>
     <button class="tool-btn" data-tool="pencil" title="Pencil (P)">
-      <span class="tool-icon" style="-webkit-mask-image:url(assets/icons_ui/pencil.svg);mask-image:url(assets/icons_ui/pencil.svg)"></span>
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="-1 -0.95 18.03 17.94"><path d="M2.6 15.04L13.87 3.79l-1.6-1.61L1 13.43l-.98 2.16c-.09.22.16.47.38.37zm12.1-12.06l.95-.94c.48-.48.51-.99.08-1.42l-.28-.28c-.42-.42-.94-.38-1.41.09l-.95.94z" fill="currentColor"/></svg>
     </button>
     <button class="tool-btn" data-tool="eraser" title="Eraser (E)">
-      <span class="tool-icon" style="-webkit-mask-image:url(assets/icons_ui/eraser.svg);mask-image:url(assets/icons_ui/eraser.svg)"></span>
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0.24 0.28 25.27 21.57"><path d="M17.62 19.76c0 .38-.32.69-.7.69h-5.18l1.38-1.38h3.1c.38 0 .7.31.7.69z" fill="currentColor"/><path d="M24.51 19.76c0 .38-.31.69-.69.69h-4.15c-.38 0-.69-.31-.69-.69 0-.38.31-.7.69-.7h4.15c.38 0 .69.32.69.7z" fill="currentColor"/><path d="M4.15 9.7l8.24 8.23 7.79-7.79c.85-.84.84-2.05-.03-2.91l-5.3-5.3c-.86-.87-2.06-.88-2.91-.03L4.15 9.7zM2.33 16.02l3.73 3.74c1.41 1.4 3.06 1.45 4.39.12l1.06-1.05L3.27 10.58l-1.06 1.05c-1.34 1.34-1.29 2.98.12 4.39z" fill="currentColor"/></svg>
     </button>
 
     <div class="tool-sep"></div>
 
     <button class="tool-btn" data-tool="fill" title="Fill (G)">
-      <span class="tool-icon" style="-webkit-mask-image:url(assets/icons_ui/bucket.svg);mask-image:url(assets/icons_ui/bucket.svg)"></span>
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="-1 -1 24.27 26.13"><path d="M1.08 17.53l5.52 5.52c1.42 1.43 2.87 1.44 4.28.03l8.52-8.52c1.37-1.38 1.36-2.89-.02-4.27L13.85 4.77c-1.42-1.42-2.87-1.45-4.29-.02L1.05 13.25c-1.43 1.41-1.39 2.86.03 4.28zm.99-.96c-.78-.77-.77-1.6.01-2.39l8.41-8.41c.78-.78 1.61-.78 2.38-.01l5.49 5.49c.77.77.77 1.61-.01 2.39L9.95 22.05c-.77.77-1.61.77-2.39.01zm9.9-2.28c1.15 0 2.09-.94 2.09-2.1 0-1.15-.94-2.09-2.1-2.09-1.15 0-2.1.94-2.1 2.09 0 1.16.95 2.1 2.1 2.1zm0-.97c-.63 0-1.13-.5-1.13-1.13 0-.61.5-1.12 1.13-1.12.61 0 1.12.51 1.12 1.12 0 .63-.51 1.13-1.12 1.13zm-.52-2.58h1.05V3.25c0-1.94-1.27-3.25-3.13-3.25-1.86 0-3.12 1.31-3.12 3.25v5.55l1.06-1.05V3.25c0-1.29.84-2.16 2.06-2.16 1.23 0 2.07.87 2.07 2.16zM16.07 7.68l3.72 3.93v1.63l-1.2 1.39v8.36c0 .88 1.03.98 1.41.36l1.78-3.03c.39-.65.5-1.01.5-2.03v-6.04c0-.92-.2-1.83-.93-2.56l-2.69-2.7c-.58-.57-1.37-.54-1.84-.07z" fill="currentColor"/></svg>
     </button>
     <button class="tool-btn" data-tool="gradient" title="Gradient (D)">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="12" x2="21" y2="12" opacity="0.3"/><line x1="3" y1="8" x2="21" y2="8" opacity="0.15"/><line x1="3" y1="16" x2="21" y2="16" opacity="0.5"/><line x1="3" y1="20" x2="21" y2="20" opacity="0.7"/></svg>
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 925.44 925.44"><defs><linearGradient id="grad-icon-fill" gradientUnits="userSpaceOnUse" x1="59.86" y1="462.72" x2="865.58" y2="462.72" gradientTransform="matrix(1 0 0 -1 0 926)"><stop offset="0" stop-color="currentColor"/><stop offset="1" stop-color="currentColor" stop-opacity="0"/></linearGradient></defs><path d="M155.35 59.86h614.74c52.71 0 95.5 42.8 95.5 95.5v614.74c0 52.71-42.8 95.5-95.5 95.5H155.35c-52.71 0-95.5-42.8-95.5-95.5V155.35c0-52.71 42.79-95.49 95.5-95.49z" fill="url(#grad-icon-fill)"/><path d="M759.37 105.8c33.24 0 60.27 27.04 60.27 60.27v593.3c0 33.24-27.04 60.27-60.27 60.27h-593.3c-33.24 0-60.27-27.04-60.27-60.27v-593.3c0-33.24 27.04-60.27 60.27-60.27h593.3M759.37 42.02h-593.3c-68.52 0-124.06 55.54-124.06 124.06v593.3c0 68.52 55.54 124.06 124.06 124.06h593.3c68.52 0 124.06-55.54 124.06-124.06v-593.3c0-68.52-55.54-124.06-124.06-124.06z" fill="currentColor"/></svg>
     </button>
     <button class="tool-btn" data-tool="eyedropper" title="Eyedropper (I)">
-      <span class="tool-icon" style="-webkit-mask-image:url(assets/icons_ui/eyedroper.svg);mask-image:url(assets/icons_ui/eyedroper.svg)"></span>
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="-1 -0.52 22.86 22.72"><path d="M13.49 9.08L4.25 18.3c-.39.39-.89.53-1.29.1-.41-.45-.33-.88.1-1.32l9.21-9.23-.77-.76L3.3 15.3C.23 18.37 1.67 17.94 0 20.3l.84.9c2.29-1.66 2.01-.07 5.13-3.18l8.25-8.2zm2.21 1.81l.26-.28c.47-.51.5-1.1-.02-1.59l-.3-.31c1.52-1.37 3.23-1.58 4.28-2.63 1.48-1.5 1-3.59-.04-4.63-1.04-1.05-3.11-1.49-4.63.04-1.07 1.03-1.27 2.76-2.63 4.28l-.31-.3c-.5-.52-1.09-.49-1.59-.02l-.28.26c-.61.57-.49 1.1.01 1.61l3.63 3.63c.52.51 1.04.63 1.62.06z" fill="currentColor"/></svg>
     </button>
 
     <div class="tool-sep"></div>
@@ -207,8 +230,7 @@
       </div>
       <div class="panel-body">
         <div class="color-preview-row">
-          <div class="color-preview-swatch" id="colorSwatchPreview" style="background:#ffffff">
-            <input type="color" id="mainColorPicker" value="#ffffff">
+          <div class="color-preview-swatch" id="colorSwatchPreview" style="background:#ffffff" onclick="toggleColorPicker()" title="Open Color Picker">
           </div>
           <div class="color-fields">
             <div class="color-field-row">
@@ -218,9 +240,9 @@
             <div class="color-field-row">
               <span class="color-field-label">R</span>
               <input class="color-field-input" id="rInput" type="number" value="255" min="0" max="255">
-              <span class="color-field-label" style="width:10px">G</span>
+              <span class="color-field-label">G</span>
               <input class="color-field-input" id="gInput" type="number" value="255" min="0" max="255">
-              <span class="color-field-label" style="width:10px">B</span>
+              <span class="color-field-label">B</span>
               <input class="color-field-input" id="bInput" type="number" value="255" min="0" max="255">
             </div>
           </div>
@@ -232,28 +254,29 @@
     <div class="panel">
       <div class="panel-header">
         <span class="panel-title">Layers</span>
-        <div class="panel-actions">
-          <button class="panel-btn" onclick="addLayer()" title="Add Layer">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          </button>
-          <button class="panel-btn" onclick="deleteLayer()" title="Delete Layer">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          </button>
-          <button class="panel-btn" onclick="moveLayerUp()" title="Move Up">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 19V5m0 0-7 7m7-7 7 7"/></svg>
-          </button>
-          <button class="panel-btn" onclick="moveLayerDown()" title="Move Down">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14m0 0 7-7m-7 7-7-7"/></svg>
-          </button>
-        </div>
       </div>
       <div class="panel-body">
-        <div class="opt-group" style="margin-bottom:8px">
+        <div class="opt-group" style="margin-bottom:8px;width:100%">
           <span class="opt-label">Opacity</span>
-          <input type="range" class="opt-range" id="layerOpacity" min="0" max="100" value="100" style="width:100px">
-          <span id="layerOpacityVal" style="font-size:11px;color:var(--text);font-weight:700;width:32px;text-align:right">100%</span>
+          <input type="range" class="opt-range" id="layerOpacity" min="0" max="100" value="100" style="flex:1">
+          <span id="layerOpacityVal" style="font-size:11px;color:var(--text);font-weight:700;min-width:32px;text-align:right;flex-shrink:0">100%</span>
         </div>
         <div class="layers-list" id="layersList"></div>
+        <div class="layer-actions">
+          <button class="panel-btn" onclick="addLayer()" title="Add Layer">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="-1 -1 18.45 18.45"><path d="M8.98 15.68V.77c0-.42-.34-.77-.76-.77-.42 0-.76.35-.76.77v14.91c0 .42.34.77.76.77.42 0 .76-.35.76-.77zM.77 8.98h14.91c.42 0 .77-.34.77-.76 0-.42-.35-.76-.77-.76H.77C.35 7.46 0 7.8 0 8.23c0 .41.35.76.77.76z" fill="currentColor"/></svg>
+          </button>
+          <button class="panel-btn" onclick="deleteLayer()" title="Delete Layer">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="-1 -1 21.37 24.31"><path d="M6.61 19.29c-.34 0-.55-.21-.57-.53l-.32-11.27c-.01-.33.21-.53.56-.53.31 0 .55.2.56.52l.33 11.27c.01.32-.22.54-.56.54zm3.08 0c-.34 0-.58-.22-.58-.54V7.48c0-.32.24-.53.58-.53.34 0 .58.21.58.53v11.27c0 .32-.24.54-.58.54zm3.07 0c-.34 0-.56-.22-.55-.53l.33-11.27c.01-.33.24-.53.56-.53.34 0 .56.21.55.54l-.33 11.27c-.01.33-.22.53-.56.53zM5.34 4.47h1.37V2.32c0-.63.43-1.03 1.1-1.03h3.74c.67 0 1.1.4 1.1 1.03v2.15h1.37V2.24C14.02.85 13.12 0 11.63 0H7.73c-1.49 0-2.39.85-2.39 2.24v2.23zM.65 5.15h18.07c.36 0 .65-.3.65-.65 0-.36-.29-.66-.65-.66H.65C.3 3.84 0 4.15 0 4.5c0 .36.3.65.65.65zM5.1 22.31h9.18c1.34 0 2.29-.91 2.36-2.26l.74-15.11H1.99l.74 15.12c.07 1.34 1 2.25 2.37 2.25z" fill="currentColor"/></svg>
+          </button>
+          <div class="layer-actions-spacer"></div>
+          <button class="panel-btn" onclick="moveLayerUp()" title="Move Up">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="-1 -1 17.13 20.95"><path d="M.73 8.31c.2 0 .41-.07.54-.2l2.77-2.74 3.51-3.81 3.52 3.81 2.77 2.74c.13.13.34.2.54.2.42 0 .73-.32.73-.75 0-.2-.07-.38-.23-.55L8.13.26C7.97.09 7.77 0 7.56 0c-.21 0-.41.09-.57.26L.23 7.02C.07 7.19 0 7.36 0 7.56c0 .43.31.75.73.75zM7.56 18.95c.45 0 .76-.31.76-.75V4.45l-.09-2.83c0-.4-.27-.68-.67-.68-.4 0-.67.28-.67.67l-.09 2.84v13.74c0 .44.31.75.76.75z" fill="currentColor"/></svg>
+          </button>
+          <button class="panel-btn" onclick="moveLayerDown()" title="Move Down">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="-1 -1 17.13 20.95"><path d="M7.56 18.95c.21 0 .41-.09.57-.26l6.76-6.76c.16-.17.23-.34.23-.55 0-.43-.31-.75-.73-.75-.2 0-.41.07-.54.2l-2.77 2.74-3.52 3.81-3.51-3.81-2.77-2.74c-.13-.13-.34-.2-.54-.2-.42 0-.73.32-.73.75 0 .2.07.37.23.55l6.76 6.76c.16.17.36.26.57.26zM7.56 18c.4 0 .67-.28.67-.68l.09-2.83V.75c0-.44-.31-.75-.76-.75-.45 0-.76.31-.76.75v14.49l.09 2.84c0 .39.27.67.67.67z" fill="currentColor"/></svg>
+          </button>
+        </div>
       </div>
     </div>
 
@@ -323,6 +346,69 @@
 <!-- Hidden file input -->
 <input type="file" id="fileInput" accept="image/*">
 
+
+<!-- ═══════════════════ COLOR PICKER FLOATING PANEL ═══════════════════ -->
+<div class="cp-panel" id="colorPickerPanel">
+  <div class="cp-titlebar" id="cpTitlebar">
+    <span class="cp-title">Color Picker</span>
+    <button class="cp-close" id="cpCloseBtn" onclick="closeColorPicker()" title="Close">&times;</button>
+  </div>
+  <div class="cp-body">
+    <div class="cp-left">
+      <div class="cp-view-toggle">
+        <button class="cp-vtab active" data-view="spectrum" onclick="cpSwitchView('spectrum')">Spectrum</button>
+        <button class="cp-vtab" data-view="wheel" onclick="cpSwitchView('wheel')">Wheel</button>
+      </div>
+      <div class="cp-view-area">
+        <div class="cp-spectrum-view" id="cpSpectrumView">
+          <div class="cp-sv-field" id="cpSvField">
+            <div class="cp-sv-reticle" id="cpSvReticle"></div>
+          </div>
+          <input type="range" class="cp-hue-slider" id="cpHueSlider" min="0" max="360" value="0">
+        </div>
+        <div class="cp-wheel-view hidden" id="cpWheelView">
+          <div class="cp-wheel" id="cpWheel">
+            <div class="cp-wheel-darken" id="cpWheelDarken"></div>
+            <div class="cp-sv-reticle" id="cpWheelReticle"></div>
+          </div>
+          <input type="range" class="cp-bri-slider" id="cpBriSlider" min="0" max="100" value="100">
+        </div>
+      </div>
+    </div>
+    <div class="cp-right">
+      <div class="cp-view-toggle">
+        <button class="cp-vtab active" data-slider="rgb" onclick="cpSwitchSliders('rgb')">RGB</button>
+        <button class="cp-vtab" data-slider="hsb" onclick="cpSwitchSliders('hsb')">HSB</button>
+        <button class="cp-vtab" data-slider="hsl" onclick="cpSwitchSliders('hsl')">HSL</button>
+      </div>
+      <div class="cp-sliders" id="cpSlidersRgb">
+        <div class="cp-slider-row"><span class="cp-sl">R</span><input type="range" class="cp-range cp-range-r" id="cpR" min="0" max="255" value="255"><input type="number" class="cp-num" id="cpRN" value="255" min="0" max="255"></div>
+        <div class="cp-slider-row"><span class="cp-sl">G</span><input type="range" class="cp-range cp-range-g" id="cpG" min="0" max="255" value="255"><input type="number" class="cp-num" id="cpGN" value="255" min="0" max="255"></div>
+        <div class="cp-slider-row"><span class="cp-sl">B</span><input type="range" class="cp-range cp-range-b" id="cpB" min="0" max="255" value="255"><input type="number" class="cp-num" id="cpBN" value="255" min="0" max="255"></div>
+      </div>
+      <div class="cp-sliders hidden" id="cpSlidersHsb">
+        <div class="cp-slider-row"><span class="cp-sl">H</span><input type="range" class="cp-range cp-range-hue" id="cpHsbH" min="0" max="360" value="0"><input type="number" class="cp-num" id="cpHsbHN" value="0" min="0" max="360"></div>
+        <div class="cp-slider-row"><span class="cp-sl">S</span><input type="range" class="cp-range" id="cpHsbS" min="0" max="100" value="0"><input type="number" class="cp-num" id="cpHsbSN" value="0" min="0" max="100"></div>
+        <div class="cp-slider-row"><span class="cp-sl">B</span><input type="range" class="cp-range" id="cpHsbB" min="0" max="100" value="100"><input type="number" class="cp-num" id="cpHsbBN" value="100" min="0" max="100"></div>
+      </div>
+      <div class="cp-sliders hidden" id="cpSlidersHsl">
+        <div class="cp-slider-row"><span class="cp-sl">H</span><input type="range" class="cp-range cp-range-hue" id="cpHslH" min="0" max="360" value="0"><input type="number" class="cp-num" id="cpHslHN" value="0" min="0" max="360"></div>
+        <div class="cp-slider-row"><span class="cp-sl">S</span><input type="range" class="cp-range" id="cpHslS" min="0" max="100" value="100"><input type="number" class="cp-num" id="cpHslSN" value="100" min="0" max="100"></div>
+        <div class="cp-slider-row"><span class="cp-sl">L</span><input type="range" class="cp-range" id="cpHslL" min="0" max="100" value="50"><input type="number" class="cp-num" id="cpHslLN" value="50" min="0" max="100"></div>
+      </div>
+      <div class="cp-footer">
+        <div class="cp-swatch" id="cpSwatch"></div>
+        <div class="cp-hex-group">
+          <span class="cp-hex-hash">#</span>
+          <input type="text" class="cp-hex-input" id="cpHexInput" value="FFFFFF" maxlength="6" spellcheck="false" autocomplete="off">
+        </div>
+        <button class="cp-eyedropper-btn" id="cpEyedropperBtn" title="Eyedropper" onclick="cpStartEyedropper()">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="-1 -0.52 22.86 22.72"><path d="M13.49 9.08L4.25 18.3c-.39.39-.89.53-1.29.1-.41-.45-.33-.88.1-1.32l9.21-9.23-.77-.76L3.3 15.3C.23 18.37 1.67 17.94 0 20.3l.84.9c2.29-1.66 2.01-.07 5.13-3.18l8.25-8.2zm2.21 1.81l.26-.28c.47-.51.5-1.1-.02-1.59l-.3-.31c1.52-1.37 3.23-1.58 4.28-2.63 1.48-1.5 1-3.59-.04-4.63-1.04-1.05-3.11-1.49-4.63.04-1.07 1.03-1.27 2.76-2.63 4.28l-.31-.3c-.5-.52-1.09-.49-1.59-.02l-.28.26c-.61.57-.49 1.1.01 1.61l3.63 3.63c.52.51 1.04.63 1.62.06z" fill="currentColor"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <script src="script.js"></script>
 </body>
