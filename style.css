@@ -862,6 +862,42 @@ html, body {
 input[type="file"] { display: none; }
 .color-preview-swatch { cursor: pointer; }
 
+/* ══════════════════ BRUSH CURSOR ══════════════════ */
+#brushCursor {
+  position: fixed;
+  pointer-events: none;
+  z-index: 150;
+  border: 1.5px solid rgba(255,255,255,0.8);
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px rgba(0,0,0,0.35);
+  display: none;
+  will-change: transform;
+}
+
+/* ══════════════════ ANCHOR GRID ══════════════════ */
+.anchor-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 22px);
+  grid-template-rows: repeat(3, 22px);
+  gap: 2px;
+}
+
+.anchor-btn {
+  width: 22px;
+  height: 22px;
+  border-radius: 3px;
+  border: 1px solid var(--border-strong);
+  background: var(--bg);
+  cursor: pointer;
+  outline: none;
+  padding: 0;
+}
+.anchor-btn:hover { background: var(--bg-hover); }
+.anchor-btn.active {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
 /* ══════════════════ COLOR PICKER PANEL ══════════════════ */
 .cp-panel {
   display: none;

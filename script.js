@@ -52,12 +52,27 @@ let gradientStart = null, gradientEnd = null;
 // Lasso
 let lassoPoints = [];
 
-// Move tool - cut & reposition
+// Move tool - floating selection system
 let isMovingPixels = false;
 let moveFloatCanvas = null;
 let moveFloatCtx = null;
 let moveFloatOrigin = {x:0, y:0};
 let moveOffset = {x:0, y:0};
+
+// Persistent floating selection (Photoshop-style)
+let floatingCanvas = null;
+let floatingCtx = null;
+let floatingOffset = {x:0, y:0};
+let floatingActive = false;
+let floatingSelectionData = null; // original selection data for ants
+
+// Clipboard
+let clipboardCanvas = null;
+let clipboardOrigin = {x:0, y:0}; // position where copied from
+
+// Brush stroke buffer (non-stacking opacity)
+let strokeBuffer = null;
+let strokeBufferCtx = null;
 
 // Current filter
 let currentFilterType = null;
@@ -192,8 +207,34 @@ function compositeAll() {
     if (!l.visible) continue;
     compositeCtx.globalAlpha = l.opacity;
     compositeCtx.drawImage(l.canvas, 0, 0);
+    // Render floating pixels above the active layer
+    if (i === activeLayerIndex && floatingActive && floatingCanvas) {
+      compositeCtx.drawImage(floatingCanvas, floatingOffset.x, floatingOffset.y);
+    }
   }
   compositeCtx.globalAlpha = 1;
+}
+
+function compositeAllWithStrokeBuffer() {
+  compositeAll();
+  if (!strokeBuffer) return;
+  const layer = getActiveLayer();
+  if (!layer) return;
+  const opacity = getToolOpacity();
+  compositeCtx.save();
+  if (selectionPath) compositeCtx.clip(selectionPath);
+  if (currentTool === 'eraser') {
+    // Show eraser preview: draw layer without erased area, then add buffer as mask
+    compositeCtx.globalAlpha = opacity;
+    compositeCtx.globalCompositeOperation = 'destination-out';
+    compositeCtx.drawImage(strokeBuffer, 0, 0);
+  } else {
+    compositeCtx.globalAlpha = opacity;
+    compositeCtx.drawImage(strokeBuffer, 0, 0);
+  }
+  compositeCtx.globalCompositeOperation = 'source-over';
+  compositeCtx.globalAlpha = 1;
+  compositeCtx.restore();
 }
 
 function updateLayerPanel() {
@@ -447,11 +488,16 @@ function selectTool(name) {
   }
 
   // Cursor
-  workspace.style.cursor = (name === 'pan') ? 'grab' :
-    name === 'move' ? 'default' :
-    name === 'zoom' ? 'zoom-in' :
-    name === 'eyedropper' ? 'crosshair' :
-    name === 'text' ? 'text' : 'crosshair';
+  if (['brush','pencil','eraser'].includes(name)) {
+    workspace.style.cursor = 'none'; // custom brush cursor handles this
+  } else {
+    workspace.style.cursor = (name === 'pan') ? 'grab' :
+      name === 'move' ? 'default' :
+      name === 'zoom' ? 'zoom-in' :
+      name === 'eyedropper' ? 'crosshair' :
+      name === 'text' ? 'text' : 'crosshair';
+    brushCursorEl.style.display = 'none';
+  }
 
   // Status
   const toolNames = {move:'Move',pan:'Pan',select:'Select',lasso:'Lasso',brush:'Brush',pencil:'Pencil',eraser:'Eraser',fill:'Fill',gradient:'Gradient',eyedropper:'Eyedropper',text:'Text',rect:'Rectangle',ellipse:'Ellipse',line:'Line',zoom:'Zoom'};
@@ -692,7 +738,24 @@ function selectAll() {
   drawOverlay();
 }
 
+function commitFloating() {
+  if (!floatingActive || !floatingCanvas) return;
+  const layer = getActiveLayer();
+  if (layer) {
+    layer.ctx.drawImage(floatingCanvas, floatingOffset.x, floatingOffset.y);
+  }
+  floatingActive = false;
+  floatingCanvas = null;
+  floatingCtx = null;
+  floatingOffset = {x:0, y:0};
+  floatingSelectionData = null;
+  compositeAll();
+  updateLayerPanel();
+}
+
 function clearSelection() {
+  // Commit any floating pixels first
+  if (floatingActive) commitFloating();
   selection = null; selectionPath = null;
   lassoPoints = []; polyPoints = [];
   if (selectionMask) selectionMaskCtx.clearRect(0, 0, canvasW, canvasH);
@@ -795,7 +858,14 @@ function drawOverlay() {
 
   // Render committed selection
   if (selectionPath) {
-    drawAntsOnPath(overlayCtx, selectionPath);
+    if (floatingActive) {
+      overlayCtx.save();
+      overlayCtx.translate(floatingOffset.x, floatingOffset.y);
+      drawAntsOnPath(overlayCtx, selectionPath);
+      overlayCtx.restore();
+    } else {
+      drawAntsOnPath(overlayCtx, selectionPath);
+    }
   }
 
   // Transform handles
@@ -935,12 +1005,44 @@ function onMouseDown(e) {
   // Move tool
   if (e.button===0 && currentTool==='move') {
     const layer=getActiveLayer(); if(!layer||!layer.visible) return;
+    
+    if (floatingActive && floatingCanvas) {
+      // Already floating — start repositioning
+      isMovingPixels = true;
+      isDrawing = false;
+      return;
+    }
+    
+    // Not floating yet — cut pixels and create floating selection
     pushUndo('Move');
-    moveFloatCanvas=document.createElement('canvas'); moveFloatCanvas.width=canvasW; moveFloatCanvas.height=canvasH;
-    moveFloatCtx=moveFloatCanvas.getContext('2d');
-    if(selectionPath){moveFloatCtx.save();moveFloatCtx.clip(selectionPath);moveFloatCtx.drawImage(layer.canvas,0,0);moveFloatCtx.restore();layer.ctx.save();layer.ctx.clip(selectionPath);layer.ctx.clearRect(0,0,canvasW,canvasH);layer.ctx.restore();}
-    else{moveFloatCtx.drawImage(layer.canvas,0,0);layer.ctx.clearRect(0,0,canvasW,canvasH);}
-    isMovingPixels=true; moveOffset={x:0,y:0}; isDrawing=false; compositeAll(); return;
+    floatingCanvas = document.createElement('canvas');
+    floatingCanvas.width = canvasW;
+    floatingCanvas.height = canvasH;
+    floatingCtx = floatingCanvas.getContext('2d');
+    
+    if (selectionPath) {
+      // Cut selected pixels
+      floatingCtx.save();
+      floatingCtx.clip(selectionPath);
+      floatingCtx.drawImage(layer.canvas, 0, 0);
+      floatingCtx.restore();
+      // Clear from layer (transparency)
+      layer.ctx.save();
+      layer.ctx.clip(selectionPath);
+      layer.ctx.clearRect(0, 0, canvasW, canvasH);
+      layer.ctx.restore();
+    } else {
+      // Move entire layer contents
+      floatingCtx.drawImage(layer.canvas, 0, 0);
+      layer.ctx.clearRect(0, 0, canvasW, canvasH);
+    }
+    
+    floatingActive = true;
+    floatingOffset = {x:0, y:0};
+    isMovingPixels = true;
+    isDrawing = false;
+    compositeAll();
+    return;
   }
 
   // Zoom
@@ -997,10 +1099,12 @@ function onMouseDown(e) {
     const size=currentTool==='pencil'?1:getBrushSize();
     const color=currentTool==='eraser'?'rgba(0,0,0,1)':fgColor;
     const hardness=currentTool==='pencil'?1:getBrushHardness();
-    const opacity=getToolOpacity();
-    if(currentTool==='eraser'){layer.ctx.save();layer.ctx.globalCompositeOperation='destination-out';drawBrushStroke(layer.ctx,px,py,size,color,hardness,opacity);layer.ctx.restore();}
-    else{if(selectionPath){layer.ctx.save();layer.ctx.clip(selectionPath);drawBrushStroke(layer.ctx,px,py,size,color,hardness,opacity);layer.ctx.restore();}else drawBrushStroke(layer.ctx,px,py,size,color,hardness,opacity);}
-    compositeAll();
+    // Create stroke buffer for non-stacking opacity
+    strokeBuffer=document.createElement('canvas'); strokeBuffer.width=canvasW; strokeBuffer.height=canvasH;
+    strokeBufferCtx=strokeBuffer.getContext('2d');
+    if(currentTool==='eraser'){strokeBufferCtx.globalCompositeOperation='source-over';}
+    drawBrushStroke(strokeBufferCtx,px,py,size,color,hardness,1);
+    compositeAllWithStrokeBuffer();
   } else if (currentTool==='fill') {
     pushUndo('Fill'); const tol=parseInt(document.getElementById('fillTolerance').value)||32;
     if(selectionPath){layer.ctx.save();layer.ctx.clip(selectionPath);floodFill(layer.ctx,px,py,fgColor,tol);layer.ctx.restore();}else floodFill(layer.ctx,px,py,fgColor,tol);
@@ -1018,7 +1122,17 @@ function onMouseMove(e) {
   document.getElementById('statusPos').textContent=`X: ${Math.round(px)}  Y: ${Math.round(py)}`;
 
   if(isPanning){panX=e.clientX-panStart.x;panY=e.clientY-panStart.y;updateTransform();return;}
-  if(isMovingPixels&&moveFloatCanvas){const dx=px-drawStart.x,dy=py-drawStart.y;moveOffset={x:dx,y:dy};compositeAll();compositeCtx.drawImage(moveFloatCanvas,dx,dy);return;}
+  
+  // Floating selection dragging
+  if(isMovingPixels&&floatingActive&&floatingCanvas){
+    const dx=px-drawStart.x, dy=py-drawStart.y;
+    floatingOffset.x += dx;
+    floatingOffset.y += dy;
+    drawStart = {x:px, y:py}; // reset for continuous delta
+    compositeAll();
+    drawOverlay();
+    return;
+  }
 
   // Transform dragging
   if(transformHandleDrag&&transformOrigBounds){
@@ -1065,11 +1179,11 @@ function onMouseMove(e) {
   }
 
   // Other tools
-  if(['brush','pencil','eraser'].includes(currentTool)){
-    const size=currentTool==='pencil'?1:getBrushSize();const color=currentTool==='eraser'?'rgba(0,0,0,1)':fgColor;const hardness=currentTool==='pencil'?1:getBrushHardness();const opacity=getToolOpacity();
-    if(currentTool==='eraser'){layer.ctx.save();layer.ctx.globalCompositeOperation='destination-out';drawLineBetween(layer.ctx,lastDraw.x,lastDraw.y,px,py,size,color,hardness,opacity);layer.ctx.restore();}
-    else{if(selectionPath){layer.ctx.save();layer.ctx.clip(selectionPath);drawLineBetween(layer.ctx,lastDraw.x,lastDraw.y,px,py,size,color,hardness,opacity);layer.ctx.restore();}else drawLineBetween(layer.ctx,lastDraw.x,lastDraw.y,px,py,size,color,hardness,opacity);}
-    compositeAll(); lastDraw={x:px,y:py};
+  if(['brush','pencil','eraser'].includes(currentTool)&&strokeBuffer){
+    const size=currentTool==='pencil'?1:getBrushSize();const color=currentTool==='eraser'?'rgba(0,0,0,1)':fgColor;const hardness=currentTool==='pencil'?1:getBrushHardness();
+    drawLineBetween(strokeBufferCtx,lastDraw.x,lastDraw.y,px,py,size,color,hardness,1);
+    compositeAllWithStrokeBuffer();
+    lastDraw={x:px,y:py};
   } else if(currentTool==='gradient'){
     gradientEnd={x:px,y:py};
     overlayCtx.clearRect(0,0,canvasW,canvasH);overlayCtx.beginPath();overlayCtx.moveTo(gradientStart.x,gradientStart.y);overlayCtx.lineTo(gradientEnd.x,gradientEnd.y);overlayCtx.strokeStyle='#fff';overlayCtx.lineWidth=1/zoom;overlayCtx.setLineDash([4/zoom,4/zoom]);overlayCtx.stroke();overlayCtx.setLineDash([]);
@@ -1131,6 +1245,24 @@ function onMouseUp(e) {
       lassoPoints=[];
     }
     drawOverlay(); return;
+  }
+
+  // Commit brush stroke buffer
+  if(['brush','pencil','eraser'].includes(currentTool)&&strokeBuffer&&layer){
+    const opacity=getToolOpacity();
+    layer.ctx.save();
+    if(selectionPath) layer.ctx.clip(selectionPath);
+    if(currentTool==='eraser'){
+      layer.ctx.globalCompositeOperation='destination-out';
+      layer.ctx.globalAlpha=opacity;
+      layer.ctx.drawImage(strokeBuffer,0,0);
+    } else {
+      layer.ctx.globalAlpha=opacity;
+      layer.ctx.drawImage(strokeBuffer,0,0);
+    }
+    layer.ctx.restore();
+    strokeBuffer=null; strokeBufferCtx=null;
+    compositeAll(); return;
   }
 
   // Gradient
@@ -1821,6 +1953,8 @@ document.addEventListener('keydown', (e) => {
 
   if (ctrl && k === 'z') { e.preventDefault(); doUndo(); }
   else if (ctrl && k === 'y') { e.preventDefault(); doRedo(); }
+  else if (ctrl && k === 'c') { e.preventDefault(); doCopy(); }
+  else if (ctrl && k === 'v') { e.preventDefault(); doPaste(); }
   else if (ctrl && k === 'n') { e.preventDefault(); newImage(); }
   else if (ctrl && k === 'o') { e.preventDefault(); openImage(); }
   else if (ctrl && k === 's') { e.preventDefault(); saveImage(e.shiftKey ? 'jpg' : 'png'); }
@@ -1832,6 +1966,18 @@ document.addEventListener('keydown', (e) => {
   else if (ctrl && k === '1') { e.preventDefault(); zoom100(); }
   else if (k === 'delete' || k === 'backspace') { if (selection) { e.preventDefault(); deleteSelection(); } }
   else if (k === 'x') { swapColors(); }
+  else if (k === '[') { // Decrease brush size
+    e.preventDefault();
+    const s = Math.max(1, getBrushSize() - (getBrushSize() > 20 ? 5 : getBrushSize() > 5 ? 2 : 1));
+    document.getElementById('brushSize').value = s;
+    document.getElementById('brushSizeNum').value = s;
+  }
+  else if (k === ']') { // Increase brush size
+    e.preventDefault();
+    const s = Math.min(500, getBrushSize() + (getBrushSize() > 20 ? 5 : getBrushSize() > 5 ? 2 : 1));
+    document.getElementById('brushSize').value = s;
+    document.getElementById('brushSizeNum').value = s;
+  }
   else if (k === ' ') { e.preventDefault(); /* space for pan handled in mousedown */ }
   else if (toolKeys[k]) { selectTool(toolKeys[k]); }
 });
@@ -1863,6 +2009,278 @@ document.addEventListener('keyup', (e) => {
     workspace.style.cursor = currentTool === 'pan' ? 'grab' : (currentTool === 'move' ? 'default' : 'crosshair');
   }
 });
+
+/* ═══════════════════════════════════════════════════════
+   BRUSH CURSOR PREVIEW
+   ═══════════════════════════════════════════════════════ */
+
+const brushCursorEl = document.getElementById('brushCursor');
+
+function updateBrushCursor(e) {
+  if (!['brush','pencil','eraser'].includes(currentTool)) {
+    brushCursorEl.style.display = 'none';
+    return;
+  }
+  const size = currentTool === 'pencil' ? 1 : getBrushSize();
+  const screenSize = size * zoom;
+  if (screenSize < 3) {
+    brushCursorEl.style.display = 'none';
+    return;
+  }
+  brushCursorEl.style.display = 'block';
+  brushCursorEl.style.width = screenSize + 'px';
+  brushCursorEl.style.height = screenSize + 'px';
+  brushCursorEl.style.transform = `translate(${e.clientX - screenSize/2}px, ${e.clientY - screenSize/2}px)`;
+}
+
+workspace.addEventListener('mousemove', updateBrushCursor);
+workspace.addEventListener('mouseleave', () => { brushCursorEl.style.display = 'none'; });
+
+// Update cursor when brush size changes
+document.getElementById('brushSize').addEventListener('input', () => {
+  if (brushCursorEl.style.display === 'block') {
+    const size = getBrushSize() * zoom;
+    brushCursorEl.style.width = size + 'px';
+    brushCursorEl.style.height = size + 'px';
+  }
+});
+
+/* ═══════════════════════════════════════════════════════
+   COPY / PASTE
+   ═══════════════════════════════════════════════════════ */
+
+function doCopy() {
+  closeAllMenus();
+  const layer = getActiveLayer();
+  if (!layer) return;
+  clipboardCanvas = document.createElement('canvas');
+  if (selectionPath && selection) {
+    const b = getSelectionBounds();
+    if (!b || b.w < 1) return;
+    clipboardCanvas.width = Math.round(b.w);
+    clipboardCanvas.height = Math.round(b.h);
+    const ctx = clipboardCanvas.getContext('2d');
+    ctx.save();
+    // Translate so selection area maps to 0,0
+    ctx.translate(-Math.round(b.x), -Math.round(b.y));
+    ctx.clip(selectionPath);
+    ctx.drawImage(layer.canvas, 0, 0);
+    ctx.restore();
+  } else {
+    clipboardCanvas.width = canvasW;
+    clipboardCanvas.height = canvasH;
+    clipboardCanvas.getContext('2d').drawImage(layer.canvas, 0, 0);
+  }
+}
+
+function doPaste() {
+  closeAllMenus();
+  if (!clipboardCanvas) return;
+  pushUndo('Paste');
+  addLayer('Pasted');
+  const layer = getActiveLayer();
+  // Center the pasted content
+  const dx = Math.round((canvasW - clipboardCanvas.width) / 2);
+  const dy = Math.round((canvasH - clipboardCanvas.height) / 2);
+  layer.ctx.drawImage(clipboardCanvas, dx, dy);
+  compositeAll();
+  updateLayerPanel();
+}
+
+// External clipboard paste (images from system clipboard)
+document.addEventListener('paste', (e) => {
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+  const items = e.clipboardData && e.clipboardData.items;
+  if (!items) return;
+  for (const item of items) {
+    if (item.type.startsWith('image/')) {
+      e.preventDefault();
+      const blob = item.getAsFile();
+      const img = new Image();
+      img.onload = () => {
+        pushUndo('Paste Image');
+        addLayer('Pasted Image');
+        const layer = getActiveLayer();
+        const dx = Math.round((canvasW - img.width) / 2);
+        const dy = Math.round((canvasH - img.height) / 2);
+        layer.ctx.drawImage(img, dx, dy);
+        compositeAll();
+        updateLayerPanel();
+        URL.revokeObjectURL(img.src);
+      };
+      img.src = URL.createObjectURL(blob);
+      break;
+    }
+  }
+});
+
+/* ═══════════════════════════════════════════════════════
+   IMAGE RESIZE
+   ═══════════════════════════════════════════════════════ */
+
+let resizeAspect = 1;
+
+function openResizeDialog() {
+  closeAllMenus();
+  document.getElementById('resizeW').value = canvasW;
+  document.getElementById('resizeH').value = canvasH;
+  resizeAspect = canvasW / canvasH;
+  document.getElementById('resizeImageModal').classList.add('show');
+}
+
+document.getElementById('resizeW').addEventListener('input', function() {
+  if (document.getElementById('resizeConstrain').checked) {
+    document.getElementById('resizeH').value = Math.round(this.value / resizeAspect);
+  }
+});
+document.getElementById('resizeH').addEventListener('input', function() {
+  if (document.getElementById('resizeConstrain').checked) {
+    document.getElementById('resizeW').value = Math.round(this.value * resizeAspect);
+  }
+});
+
+function applyResizeImage() {
+  const newW = parseInt(document.getElementById('resizeW').value) || canvasW;
+  const newH = parseInt(document.getElementById('resizeH').value) || canvasH;
+  if (newW === canvasW && newH === canvasH) { closeModal('resizeImageModal'); return; }
+  pushUndo('Resize');
+
+  layers.forEach(l => {
+    const temp = document.createElement('canvas');
+    temp.width = newW; temp.height = newH;
+    const tctx = temp.getContext('2d');
+    tctx.drawImage(l.canvas, 0, 0, canvasW, canvasH, 0, 0, newW, newH);
+    l.canvas.width = newW; l.canvas.height = newH;
+    l.ctx = l.canvas.getContext('2d');
+    l.ctx.drawImage(temp, 0, 0);
+  });
+
+  canvasW = newW; canvasH = newH;
+  compositeCanvas.width = newW; compositeCanvas.height = newH;
+  overlayCanvas.width = newW; overlayCanvas.height = newH;
+  canvasWrapper.style.width = newW + 'px'; canvasWrapper.style.height = newH + 'px';
+  checkerPattern = null;
+  clearSelection();
+  zoomFit(); compositeAll(); updateLayerPanel(); updateStatus();
+  closeModal('resizeImageModal');
+}
+
+/* ═══════════════════════════════════════════════════════
+   CANVAS SIZE
+   ═══════════════════════════════════════════════════════ */
+
+let canvasAnchor = 'mc';
+
+function openCanvasSizeDialog() {
+  closeAllMenus();
+  document.getElementById('canvasSizeW').value = canvasW;
+  document.getElementById('canvasSizeH').value = canvasH;
+  canvasAnchor = 'mc';
+  document.querySelectorAll('.anchor-btn').forEach(b => b.classList.toggle('active', b.dataset.anchor === 'mc'));
+  document.getElementById('canvasSizeModal').classList.add('show');
+}
+
+document.querySelectorAll('.anchor-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    canvasAnchor = btn.dataset.anchor;
+    document.querySelectorAll('.anchor-btn').forEach(b => b.classList.toggle('active', b.dataset.anchor === canvasAnchor));
+  });
+});
+
+function applyCanvasSize() {
+  const newW = parseInt(document.getElementById('canvasSizeW').value) || canvasW;
+  const newH = parseInt(document.getElementById('canvasSizeH').value) || canvasH;
+  if (newW === canvasW && newH === canvasH) { closeModal('canvasSizeModal'); return; }
+  pushUndo('Canvas Size');
+
+  // Calculate offset based on anchor
+  let ox = 0, oy = 0;
+  if (canvasAnchor.includes('c')) ox = Math.round((newW - canvasW) / 2);
+  if (canvasAnchor.includes('r')) ox = newW - canvasW;
+  if (canvasAnchor.includes('m') && !canvasAnchor.includes('l') && !canvasAnchor.includes('r')) ox = Math.round((newW - canvasW) / 2);
+  if (canvasAnchor[0] === 'm') oy = Math.round((newH - canvasH) / 2);
+  if (canvasAnchor[0] === 'b') oy = newH - canvasH;
+  // tl: ox=0, oy=0 (default)
+
+  layers.forEach(l => {
+    const temp = document.createElement('canvas');
+    temp.width = newW; temp.height = newH;
+    const tctx = temp.getContext('2d');
+    tctx.drawImage(l.canvas, ox, oy);
+    l.canvas.width = newW; l.canvas.height = newH;
+    l.ctx = l.canvas.getContext('2d');
+    l.ctx.drawImage(temp, 0, 0);
+  });
+
+  canvasW = newW; canvasH = newH;
+  compositeCanvas.width = newW; compositeCanvas.height = newH;
+  overlayCanvas.width = newW; overlayCanvas.height = newH;
+  canvasWrapper.style.width = newW + 'px'; canvasWrapper.style.height = newH + 'px';
+  checkerPattern = null;
+  clearSelection();
+  zoomFit(); compositeAll(); updateLayerPanel(); updateStatus();
+  closeModal('canvasSizeModal');
+}
+
+/* ═══════════════════════════════════════════════════════
+   FLIP & ROTATE
+   ═══════════════════════════════════════════════════════ */
+
+function flipHorizontal() {
+  closeAllMenus(); pushUndo('Flip H');
+  layers.forEach(l => {
+    const temp = document.createElement('canvas'); temp.width = canvasW; temp.height = canvasH;
+    const tctx = temp.getContext('2d');
+    tctx.translate(canvasW, 0); tctx.scale(-1, 1);
+    tctx.drawImage(l.canvas, 0, 0);
+    l.ctx.clearRect(0, 0, canvasW, canvasH);
+    l.ctx.drawImage(temp, 0, 0);
+  });
+  compositeAll(); updateLayerPanel();
+}
+
+function flipVertical() {
+  closeAllMenus(); pushUndo('Flip V');
+  layers.forEach(l => {
+    const temp = document.createElement('canvas'); temp.width = canvasW; temp.height = canvasH;
+    const tctx = temp.getContext('2d');
+    tctx.translate(0, canvasH); tctx.scale(1, -1);
+    tctx.drawImage(l.canvas, 0, 0);
+    l.ctx.clearRect(0, 0, canvasW, canvasH);
+    l.ctx.drawImage(temp, 0, 0);
+  });
+  compositeAll(); updateLayerPanel();
+}
+
+function rotateImage(angle) {
+  closeAllMenus(); pushUndo('Rotate');
+  const isSwap = (angle === 90 || angle === 270 || angle === -90);
+  const newW = isSwap ? canvasH : canvasW;
+  const newH = isSwap ? canvasW : canvasH;
+
+  layers.forEach(l => {
+    const temp = document.createElement('canvas'); temp.width = newW; temp.height = newH;
+    const tctx = temp.getContext('2d');
+    tctx.translate(newW/2, newH/2);
+    tctx.rotate(angle * Math.PI / 180);
+    tctx.drawImage(l.canvas, -canvasW/2, -canvasH/2);
+    l.canvas.width = newW; l.canvas.height = newH;
+    l.ctx = l.canvas.getContext('2d');
+    l.ctx.drawImage(temp, 0, 0);
+  });
+
+  canvasW = newW; canvasH = newH;
+  compositeCanvas.width = newW; compositeCanvas.height = newH;
+  overlayCanvas.width = newW; overlayCanvas.height = newH;
+  canvasWrapper.style.width = newW + 'px'; canvasWrapper.style.height = newH + 'px';
+  checkerPattern = null;
+  clearSelection();
+  zoomFit(); compositeAll(); updateLayerPanel(); updateStatus();
+}
+
+function rotateCW() { rotateImage(90); }
+function rotateCCW() { rotateImage(-90); }
+function rotate180() { rotateImage(180); }
 
 /* ═══════════════════════════════════════════════════════
    INIT ON LOAD

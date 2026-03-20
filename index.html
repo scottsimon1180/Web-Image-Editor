@@ -25,11 +25,27 @@
       <button class="menu-action" onclick="doUndo()">Undo <span class="shortcut">Ctrl+Z</span></button>
       <button class="menu-action" onclick="doRedo()">Redo <span class="shortcut">Ctrl+Y</span></button>
       <div class="menu-sep"></div>
+      <button class="menu-action" onclick="doCopy()">Copy <span class="shortcut">Ctrl+C</span></button>
+      <button class="menu-action" onclick="doPaste()">Paste <span class="shortcut">Ctrl+V</span></button>
+      <div class="menu-sep"></div>
       <button class="menu-action" onclick="selectAll()">Select All <span class="shortcut">Ctrl+A</span></button>
       <button class="menu-action" onclick="clearSelection()">Deselect <span class="shortcut">Ctrl+D</span></button>
       <div class="menu-sep"></div>
       <button class="menu-action" onclick="deleteSelection()">Delete Selection <span class="shortcut">Del</span></button>
       <button class="menu-action" onclick="cropToSelection()">Crop to Selection</button>
+    </div>
+  </div>
+  <div class="menu-item" data-menu="image">Image
+    <div class="menu-dropdown" id="menu-image">
+      <button class="menu-action" onclick="openResizeDialog()">Resize Image</button>
+      <button class="menu-action" onclick="openCanvasSizeDialog()">Canvas Size</button>
+      <div class="menu-sep"></div>
+      <button class="menu-action" onclick="flipHorizontal()">Flip Horizontal</button>
+      <button class="menu-action" onclick="flipVertical()">Flip Vertical</button>
+      <div class="menu-sep"></div>
+      <button class="menu-action" onclick="rotateCW()">Rotate 90° CW</button>
+      <button class="menu-action" onclick="rotateCCW()">Rotate 90° CCW</button>
+      <button class="menu-action" onclick="rotate180()">Rotate 180°</button>
     </div>
   </div>
   <div class="menu-item" data-menu="filter">Filter
@@ -346,6 +362,61 @@
 <!-- Hidden file input -->
 <input type="file" id="fileInput" accept="image/*">
 
+
+<!-- ═══════════════════ BRUSH CURSOR ═══════════════════ -->
+<div id="brushCursor"></div>
+
+<!-- ═══════════════════ RESIZE IMAGE MODAL ═══════════════════ -->
+<div class="modal-overlay" id="resizeImageModal">
+  <div class="modal">
+    <div class="modal-title">Resize Image</div>
+    <div class="modal-row">
+      <span class="modal-label">Width</span>
+      <input type="number" class="modal-input" id="resizeW" value="1920" min="1" max="16384">
+    </div>
+    <div class="modal-row">
+      <span class="modal-label">Height</span>
+      <input type="number" class="modal-input" id="resizeH" value="1080" min="1" max="16384">
+    </div>
+    <div class="modal-row">
+      <label class="opt-checkbox-label" style="margin-left:80px">
+        <input type="checkbox" id="resizeConstrain" checked>
+        <span>Constrain proportions</span>
+      </label>
+    </div>
+    <div class="modal-buttons">
+      <button class="modal-btn" onclick="closeModal('resizeImageModal')">Cancel</button>
+      <button class="modal-btn primary" onclick="applyResizeImage()">Resize</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ CANVAS SIZE MODAL ═══════════════════ -->
+<div class="modal-overlay" id="canvasSizeModal">
+  <div class="modal">
+    <div class="modal-title">Canvas Size</div>
+    <div class="modal-row">
+      <span class="modal-label">Width</span>
+      <input type="number" class="modal-input" id="canvasSizeW" value="1920" min="1" max="16384">
+    </div>
+    <div class="modal-row">
+      <span class="modal-label">Height</span>
+      <input type="number" class="modal-input" id="canvasSizeH" value="1080" min="1" max="16384">
+    </div>
+    <div class="modal-row">
+      <span class="modal-label">Anchor</span>
+      <div class="anchor-grid" id="anchorGrid">
+        <button class="anchor-btn" data-anchor="tl"></button><button class="anchor-btn" data-anchor="tc"></button><button class="anchor-btn" data-anchor="tr"></button>
+        <button class="anchor-btn" data-anchor="ml"></button><button class="anchor-btn active" data-anchor="mc"></button><button class="anchor-btn" data-anchor="mr"></button>
+        <button class="anchor-btn" data-anchor="bl"></button><button class="anchor-btn" data-anchor="bc"></button><button class="anchor-btn" data-anchor="br"></button>
+      </div>
+    </div>
+    <div class="modal-buttons">
+      <button class="modal-btn" onclick="closeModal('canvasSizeModal')">Cancel</button>
+      <button class="modal-btn primary" onclick="applyCanvasSize()">Apply</button>
+    </div>
+  </div>
+</div>
 
 <!-- ═══════════════════ COLOR PICKER FLOATING PANEL ═══════════════════ -->
 <div class="cp-panel" id="colorPickerPanel">
